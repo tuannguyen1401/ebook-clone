@@ -11,12 +11,17 @@ export class AuthAdminMiddleware implements NestMiddleware {
       return next(); 
     }
 
-    // Ví dụ: check cookie/token
-    const token = req.cookies?.adminToken || req.headers['authorization'];
+    // Check cookie/token
+    const token = req.cookies?.adminToken;
+    
+    // Check localStorage token (nếu có trong request header)
+    const authHeader = req.headers['authorization'];
+    const localStorageToken = authHeader?.replace('Bearer ', '');
 
     if (token === '123456') {
       next(); // Cho qua
     } else {
+      // Redirect về trang login
       res.redirect('/admin/login');
     }
   }

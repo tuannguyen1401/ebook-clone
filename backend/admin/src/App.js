@@ -8,40 +8,17 @@ import UsersList from "./users/UsersList";
 import UsersCreate from "./users/UsersCreate";
 import UsersEdit from "./users/UsersEdit";
 import UsersShow from "./users/UsersShow";
-import Login from "./auth/Login";
 
-// Component để handle login route
-const LoginRoute = () => <Login />;
+const apiUrl = process.env.REACT_APP_API_URL;
 
 const App = () => {
-  // Check if we're on login page
-  const isLoginPage = window.location.pathname === '/admin/login';
-  
-  console.log('Current path:', window.location.pathname);
-  console.log('Is login page:', isLoginPage);
-  
-  if (isLoginPage) {
-    console.log('Rendering Login component');
-    return (
-      <div>
-        <h1>TEST LOGIN PAGE</h1>
-        <p>If you see this, React is working!</p>
-        <Login />
-      </div>
-    );
-  }
-
-  console.log('Rendering Admin component');
   return (
     <Admin 
-      dataProvider={simpleRestProvider("http://localhost:3000")} 
+      dataProvider={simpleRestProvider(apiUrl)} 
       theme={theme} 
       layout={MyLayout}
       dashboard={Dashboard}
     >
-      <CustomRoutes>
-        <CustomRoutes.Route path="/login" element={<LoginRoute />} />
-      </CustomRoutes>
       <Resource
         name="users"
         list={UsersList}

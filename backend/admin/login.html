@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -164,62 +165,55 @@
     </div>
 
     <script>
-        const loginForm = document.getElementById('loginForm');
-        const errorMessage = document.getElementById('errorMessage');
-        const loginButton = document.getElementById('loginButton');
-        
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-        
-        function hideError() {
-            errorMessage.style.display = 'none';
-        }
-        
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (!username || !password) {
-                showError('Please enter both username and password');
-                return;
-            }
-            
-            loginButton.disabled = true;
-            loginButton.textContent = 'Signing in...';
-            hideError();
-            
-            try {
-                const response = await fetch('/auth/admin/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, password }),
-                });
+        $(document).ready(function() {
+            // inject API_URL into file login.html - do not remove this comment
+
+            function handleLogin() {
+                const username = $('#username').val();
+                const password = $('#password').val();
                 
-                if (response.ok) {
-                    // Login successful, redirect to admin dashboard
-                    window.location.href = '/admin';
-                } else {
-                    const errorData = await response.json();
-                    showError(errorData.message || 'Login failed');
-                }
-            } catch (error) {
-                showError('Network error. Please try again.');
-            } finally {
-                loginButton.disabled = false;
-                loginButton.textContent = 'Sign In';
+                // Disable button và show loading
+                $('#loginButton').prop('disabled', true).text('Signing in...');
+                $('#errorMessage').hide();
+                
+                $.ajax({
+                    url: `${API_URL}/admin/login`,
+                    type: 'POST',
+                    data: { username, password },
+                    success: function(response) {
+                        console.log('Login success:', response);
+                        
+                        // Lưu token vào localStorage
+                        if (response.token) {
+                            localStorage.setItem('adminToken', response.token);
+                        }
+                        
+                        // Lưu user info
+                        if (response.user) {
+                            localStorage.setItem('adminUser', JSON.stringify(response.user));
+                        }
+                        
+                        // Redirect đến React admin app
+                        window.location.href = '/admin';
+                    },
+                    error: function(xhr) {
+                        console.log('Login error:', xhr);
+                        
+                        // Show error message
+                        const errorMsg = xhr.responseJSON?.message || 'Login failed. Please try again.';
+                        $('#errorMessage').text(errorMsg).show();
+                        
+                        // Re-enable button
+                        $('#loginButton').prop('disabled', false).text('Sign In');
+                    }
+                });
             }
-        }
-        
-        loginForm.addEventListener('submit', handleLogin);
-        
-        // Auto-focus username field
-        document.getElementById('username').focus();
+
+            $('#loginForm').submit(function(event) {
+                event.preventDefault();
+                handleLogin();
+            });
+        });
     </script>
 </body>
 </html>
