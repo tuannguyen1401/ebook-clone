@@ -1,7 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthController } from './auth/auth.controller';
 import { LoginController } from './auth/login.controller';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -21,8 +20,8 @@ import { AuthAdminMiddleware } from './middleware/auth-admin.middleware';
     rootPath: join(__dirname, '..', 'uploads'),
     serveRoot: '/uploads',
   })],  
-  controllers: [AppController, AuthController, LoginController],
-  providers: [AppService],
+  controllers: [AppController, LoginController],
+  providers: [AppService, AuthAdminMiddleware],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -1,17 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Query, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Query, Res, BadRequestException } from '@nestjs/common';
 import type { Response } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+ 
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
+    @Post()
+    async create(@Body() createUserDto: CreateUserDto,
+    ) {
+      const exists = await this.usersService.findOneByField('email', createUserDto.email);
+
+      if (exists) {
+        throw new BadRequestException('Email đã tồn tại');
+      }
+      
+      return this.usersService.create(createUserDto);
+    }
 
   @Get()
   async findAll(

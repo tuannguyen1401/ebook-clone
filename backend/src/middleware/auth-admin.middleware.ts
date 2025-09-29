@@ -1,28 +1,45 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { PrismaService } from '../prisma/prisma.service';
+import {Role} from '@prisma/client';
 
 @Injectable()
 export class AuthAdminMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    // Cho phép truy cập trang login và auth API mà không cần authentication
+  constructor(private readonly prisma: PrismaService) {}
+
+  async use(req: Request, res: Response, next: NextFunction) {
     if (req.path === '/admin/login' || 
         req.path === '/login' ) 
     {
       return next(); 
     }
 
-    // Check cookie/token
-    const token = req.cookies?.adminToken;
-    
-    // Check localStorage token (nếu có trong request header)
-    const authHeader = req.headers['authorization'];
-    const localStorageToken = authHeader?.replace('Bearer ', '');
+    // Check cookie chứa user id
+    const userIdFromCookie = req.cookies?.adminToken;
 
-    if (token === '123456') {
-      next(); // Cho qua
-    } else {
-      // Redirect về trang login
-      res.redirect('/admin/login');
+    if (!userIdFromCookie) {
+      return res.redirect('/admin/login');
+    }
+
+    const userId = Number(userIdFromCookie);
+    if (!Number.isFinite(userId)) {
+      return res.redirect('/admin/login');
+    }
+
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+          return res.redirect('/admin/login');
+        }
+
+      if (user.role === Role.ADMIN) {
+        (req as any).user = user;
+        return next();
+      }
+
+      return res.redirect('/admin/login');
+    } catch (e) {
+      return res.redirect('/admin/login');
     }
   }
 }

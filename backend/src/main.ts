@@ -2,13 +2,19 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-
+import cookieParser from 'cookie-parser'; 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   // Validation
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors();
+  // Parse cookies for auth middleware
+  app.use(cookieParser());
+
+  app.enableCors({
+    origin: true,
+    credentials: true,
+  });
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('Products API')
